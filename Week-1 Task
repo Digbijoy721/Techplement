@@ -1,0 +1,184 @@
+import java.util.*;
+
+public class QuizGenerator {
+    private static final Scanner scanner = new Scanner(System.in);
+    private static final Map<String, List<Question>> quizzes = new HashMap<>();
+
+    public static void main(String[] args) {
+        System.out.println("Welcome to the Quiz Generator!");
+
+        while (true) {
+            displayMenu();
+            int choice = getUserChoice();
+
+            switch (choice) {
+                case 1:
+                    createQuiz();
+                    break;
+                case 2:
+                    addQuestionToQuiz();
+                    break;
+                case 3:
+                    takeQuiz();
+                    break;
+                case 4:
+                    exitQuizGenerator();
+                    break;
+                default:
+                    System.out.println("Invalid choice. Please try again.");
+            }
+        }
+    }
+
+    private static void displayMenu() {
+        System.out.println("\nMenu:");
+        System.out.println("1. Create Quiz");
+        System.out.println("2. Add Question to Quiz");
+        System.out.println("3. Take Quiz");
+        System.out.println("4. Exit");
+        System.out.print("Enter your choice: ");
+    }
+
+    private static int getUserChoice() {
+        int choice;
+        while (true) {
+            try {
+                choice = Integer.parseInt(scanner.nextLine());
+                break;
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a number.");
+            }
+        }
+        return choice;
+    }
+
+    private static void createQuiz() {
+        System.out.print("Enter quiz name: ");
+        String quizName = scanner.nextLine();
+        quizzes.put(quizName, new ArrayList<>());
+        System.out.println("Quiz '" + quizName + "' created successfully.");
+    }
+
+    private static void addQuestionToQuiz() {
+        System.out.print("Enter quiz name to add question: ");
+        String quizName = scanner.nextLine();
+        if (!quizzes.containsKey(quizName)) {
+            System.out.println("Quiz '" + quizName + "' not found.");
+            return;
+        }
+
+        System.out.print("Enter question: ");
+        String questionText = scanner.nextLine();
+        List<String> options = new ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            System.out.print("Enter option " + i + ": ");
+            options.add(scanner.nextLine());
+        }
+
+        int correctIndex;
+        while (true) {
+            try {
+                System.out.print("Enter correct answer (1-4): ");
+                correctIndex = Integer.parseInt(scanner.nextLine()) - 1;
+                if (correctIndex < 0 || correctIndex >= options.size()) {
+                    throw new IndexOutOfBoundsException();
+                }
+                break;
+            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                System.out.println("Invalid input. Please enter a number between 1 and " + options.size() + ".");
+            }
+        }
+
+        String correctAnswer = options.get(correctIndex);
+
+        List<Question> quiz = quizzes.get(quizName);
+        quiz.add(new Question(questionText, options, correctAnswer));
+
+        System.out.println("Question added to quiz '" + quizName + "'.");
+    }
+
+    private static void takeQuiz() {
+        System.out.print("Enter quiz name to take: ");
+        String quizName = scanner.nextLine();
+        if (!quizzes.containsKey(quizName)) {
+            System.out.println("Quiz '" + quizName + "' not found.");
+            return;
+        }
+
+        List<Question> quiz = quizzes.get(quizName);
+        int score = 0;
+
+        System.out.println("\n" + quizName + " Quiz:");
+        for (int i = 0; i < quiz.size(); i++) {
+            Question question = quiz.get(i);
+            System.out.println("\nQuestion " + (i + 1) + ": " + question.getQuestionText());
+            List<String> options = question.getOptions();
+            for (int j = 0; j < options.size(); j++) {
+                System.out.println((j + 1) + ". " + options.get(j));
+            }
+
+            int userChoice;
+            while (true) {
+                try {
+                    System.out.print("Enter your answer (1-" + options.size() + "): ");
+                    userChoice = Integer.parseInt(scanner.nextLine()) - 1;
+                    if (userChoice < 0 || userChoice >= options.size()) {
+                        throw new IndexOutOfBoundsException();
+                    }
+                    break;
+                } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                    System.out.println("Invalid input. Please enter a number between 1 and " + options.size() + ".");
+                }
+            }
+
+            String userAnswer = options.get(userChoice);
+            if (userAnswer.equalsIgnoreCase(question.getCorrectAnswer())) {
+                System.out.println("Correct!");
+                score++;
+            } else {
+                System.out.println("Incorrect. The correct answer is: " + question.getCorrectAnswer());
+            }
+        }
+
+        double percentage = (double) score / quiz.size() * 100;
+        System.out.println("\nQuiz Results:");
+        System.out.println("Score: " + score + " / " + quiz.size());
+        System.out.println("Percentage: " + percentage + "%");
+
+        if (percentage >= 70) {
+            System.out.println("Congratulations! You passed.");
+        } else {
+            System.out.println("You can do better. Keep practicing.");
+        }
+    }
+
+    private static void exitQuizGenerator() {
+        System.out.println("Exiting...");
+        scanner.close();
+        System.exit(0);
+    }
+}
+
+class Question {
+    private String questionText;
+    private List<String> options;
+    private String correctAnswer;
+
+    public Question(String questionText, List<String> options, String correctAnswer) {
+        this.questionText = questionText;
+        this.options = options;
+        this.correctAnswer = correctAnswer;
+    }
+
+    public String getQuestionText() {
+        return questionText;
+    }
+
+    public List<String> getOptions() {
+        return options;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+}
